@@ -8,7 +8,7 @@ const port = process.env.APP_PORT || 3000
 
 let users = [
    {
-      "id": crypto.randomBytes(10).toString("hex").trim(),
+      "id": crypto.randomBytes(12).toString("hex").trim(),
       "username": "admin",
       "password": "admin"
    }
@@ -28,7 +28,7 @@ app.post("/users", async (req: Request, res: Response) => {
    const user = {
       username,
       password,
-      id: crypto.randomBytes(10).toString("hex").trim()
+      id: crypto.randomBytes(12).toString("hex").trim()
    }
    users.push(user)
    res.json(user)
