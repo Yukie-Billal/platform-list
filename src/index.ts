@@ -15,7 +15,7 @@ let users = [
 ]
 
 app.get("/", async (req: Request, res: Response) => {
-   res.json({ "app": "API" })
+   res.json({ "app": "EXPRESS TYPESCRIPT API" })
 })
 
 app.get("/users", async (req: Request, res: Response) => {
