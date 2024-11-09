@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getUserByUsernamePassword = exports.createUser = exports.getUsers = void 0;
+const user_1 = require("../models/user");
+const getUsers = () => user_1.users;
+exports.getUsers = getUsers;
+const createUser = (user) => user_1.users.push(user);
+exports.createUser = createUser;
+const getUserByUsernamePassword = (username, password) => user_1.users.find(u => u.username == username && u.password == password);
+exports.getUserByUsernamePassword = getUserByUsernamePassword;

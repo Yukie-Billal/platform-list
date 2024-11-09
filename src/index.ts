@@ -6,43 +6,14 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 const port = process.env.APP_PORT || 3000
 
-let users = [
-   {
-      "id": crypto.randomBytes(12).toString("hex").trim(),
-      "username": "admin",
-      "password": "admin"
-   }
-]
-
 app.get("/", async (req: Request, res: Response) => {
    res.json({ "app": "EXPRESS TYPESCRIPT API" })
 })
 
-app.get("/users", async (req: Request, res: Response) => {
-   res.json(users)
-})
+import userRouter from "./routers/user"
+import authRouter from "./routers/auth"
 
-app.post("/users", async (req: Request, res: Response) => {
-   const { username, password } = req.body
-
-   const user = {
-      username,
-      password,
-      id: crypto.randomBytes(12).toString("hex").trim()
-   }
-   users.push(user)
-   res.json(user)
-})
-
-app.post("/auth", async (req: Request, res: Response) => {
-   const { username, password } = req.body
-
-   const user = users.find(u => u.username == username && u.password == password)
-   if (!user) {
-      res.status(400).json({ "message": "wrong username or password" })
-      return
-   }
-   res.json({ "message": "Berhasil login" })
-})
+app.use("/auth", authRouter)
+app.use("/users", userRouter)
 
 app.listen(port, () => console.log("server running on 0:" + port))

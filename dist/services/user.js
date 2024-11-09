@@ -12,16 +12,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const app = (0, express_1.default)();
-app.use(express_1.default.json());
-app.use(express_1.default.urlencoded({ extended: true }));
-const port = process.env.APP_PORT || 3000;
-app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.json({ "app": "EXPRESS TYPESCRIPT API" });
-}));
-const user_1 = __importDefault(require("./routers/user"));
-const auth_1 = __importDefault(require("./routers/auth"));
-app.use("/auth", auth_1.default);
-app.use("/users", user_1.default);
-app.listen(port, () => console.log("server running on 0:" + port));
+exports.createUser = exports.getUsers = void 0;
+const node_crypto_1 = __importDefault(require("node:crypto"));
+const user_1 = require("../models/user");
+const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.json(user_1.users);
+});
+exports.getUsers = getUsers;
+const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { username, password } = req.body;
+    const user = {
+        username,
+        password,
+        id: node_crypto_1.default.randomBytes(12).toString("hex").trim()
+    };
+    user_1.users.push(user);
+    res.json(user);
+});
+exports.createUser = createUser;
