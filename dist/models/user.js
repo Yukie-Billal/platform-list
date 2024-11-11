@@ -9,6 +9,8 @@ exports.users = [
     {
         "id": node_crypto_1.default.randomBytes(12).toString("hex").trim(),
         "username": "admin",
-        "password": "admin"
+        "email": "admin@gmail.com",
+        "password": "$2b$12$m.BdoJ0SaFJH0xsyxNdKo.wZKnFh9W5Z6R.LwZ3fCUMd8gdn.Avua",
+        "profile": ""
     }
 ];

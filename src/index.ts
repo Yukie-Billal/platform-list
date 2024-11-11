@@ -1,19 +1,18 @@
-import crypto from "node:crypto"
 import express, { Request, Response } from "express"
 
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-const port = process.env.APP_PORT || 3000
 
 app.get("/", async (req: Request, res: Response) => {
-   res.json({ "app": "EXPRESS TYPESCRIPT API" })
+   res.json({ "app": APP_NAME })
 })
 
 import userRouter from "./routers/user"
 import authRouter from "./routers/auth"
+import { APP_NAME, APP_PORT } from "./config/_constant"
 
 app.use("/auth", authRouter)
 app.use("/users", userRouter)
 
-app.listen(port, () => console.log("server running on 0:" + port))
+app.listen(APP_PORT, () => console.log("server running on 0:" + APP_PORT))

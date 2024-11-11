@@ -16,12 +16,12 @@ const express_1 = __importDefault(require("express"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-const port = process.env.APP_PORT || 3000;
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.json({ "app": "EXPRESS TYPESCRIPT API" });
+    res.json({ "app": _constant_1.APP_NAME });
 }));
 const user_1 = __importDefault(require("./routers/user"));
 const auth_1 = __importDefault(require("./routers/auth"));
+const _constant_1 = require("./config/_constant");
 app.use("/auth", auth_1.default);
 app.use("/users", user_1.default);
-app.listen(port, () => console.log("server running on 0:" + port));
+app.listen(_constant_1.APP_PORT, () => console.log("server running on 0:" + _constant_1.APP_PORT));

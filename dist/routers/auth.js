@@ -34,12 +34,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const userRepository = __importStar(require("../repository/user"));
+const password_1 = require("../utils/password");
 const authRouter = (0, express_1.Router)();
 authRouter.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, password } = req.body;
-    const user = userRepository.getUserByUsernamePassword(username, password);
-    if (!user) {
-        res.status(400).json({ "message": "wrong username or password" });
+    const { email, password } = req.body;
+    const { data: userEmail, error: emailError } = yield userRepository.getUserByEmail(email);
+    if (!userEmail || emailError) {
+        res.status(400).json({ "message": "wrong email or password" });
+        return;
+    }
+    if (!(0, password_1.comparePassword)(password, userEmail.password)) {
+        res.status(400).json({ "message": "wrong email or password" });
         return;
     }
     res.json({ "message": "Berhasil login" });

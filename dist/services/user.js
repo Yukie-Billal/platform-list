@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,25 +31,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUser = exports.getUsers = void 0;
-const node_crypto_1 = __importDefault(require("node:crypto"));
-const user_1 = require("../models/user");
+const userRepository = __importStar(require("../repository/user"));
+const password_1 = require("../utils/password");
 const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.json(user_1.users);
+    const { data: users, error } = yield userRepository.getUsers();
+    if (error) {
+        res.status(500).json({ "message": error });
+        return;
+    }
+    res.json({
+        users: users
+    });
 });
 exports.getUsers = getUsers;
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { username, password } = req.body;
+    const { email, name, password, username } = req.body;
+    const { data: emailUsed, error } = yield userRepository.getUserByEmail(email);
+    if (emailUsed || error) {
+        res.status(400).json({ "message": "Email already registered" });
+        return;
+    }
     const user = {
-        username,
-        password,
-        id: node_crypto_1.default.randomBytes(12).toString("hex").trim()
+        name: name,
+        username: username,
+        email: email,
+        password: (0, password_1.hashPassword)(password)
     };
-    user_1.users.push(user);
     res.json(user);
 });
 exports.createUser = createUser;

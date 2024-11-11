@@ -1,14 +1,19 @@
 import { Request, Response, Router } from "express"
 import * as userRepository from "../repository/user"
+import { comparePassword } from "../utils/password"
 
 const authRouter: Router = Router()
 
 authRouter.post("/", async (req: Request, res: Response) => {
-   const { username, password } = req.body
+   const { email, password } = req.body
 
-   const user = userRepository.getUserByUsernamePassword(username, password)
-   if (!user) {
-      res.status(400).json({ "message": "wrong username or password" })
+   const { data: userEmail, error: emailError } = await userRepository.getUserByEmail(email)
+   if (!userEmail || emailError) {
+      res.status(400).json({ "message": "wrong email or password" })
+      return
+   }
+   if (!comparePassword(password, userEmail.password)) {
+      res.status(400).json({ "message": "wrong email or password" })
       return
    }
    res.json({ "message": "Berhasil login" })
