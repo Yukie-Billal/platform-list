@@ -5,16 +5,15 @@ import * as authRepository from "../repository/auth"
 import { hashPassword } from "../utils/password"
 import { TablesInsert } from "../types/database.types"
 import { uploadImage } from "../utils/imgur"
+import ApiResponse from "../utils/response"
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
    const { data: users, error } = await userRepository.getUsers()
    if (error) {
-      res.status(500).json({ "message": error })
+      ApiResponse.internalError(error.message).send(res)
       return
    }
-   res.json({
-      users: users
-   })
+   ApiResponse.success({ users }).send(res)
 }
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
@@ -23,7 +22,7 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
    const { data: emailUsed, error } = await userRepository.getUserByEmail(email)
 
    if (emailUsed) {
-      res.status(400).json({ "message": "Email already registered" })
+      ApiResponse.badRequest("email", "email already registered").send(res)
       return
    }
 
@@ -36,19 +35,18 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
    const { data: signUpUser, error: errorSignUp } = await authRepository.signUp(email, password)
    if (errorSignUp) {
-      res.status(400).json({ "message": "Sign up failed", error: errorSignUp })
+      ApiResponse.badRequest(errorSignUp, "sign up failed")
       return
    }
    console.log(signUpUser);
 
    const { data, error: errorInsert } = await userRepository.createUser(user)
-
    if (errorInsert) {
-      res.status(400).json({ "message": "Failed create new user", error: errorInsert })
+      ApiResponse.badRequest(errorInsert, "failed craete new user").send(res)
       return
    }
 
-   res.json({ "message": "berhasil membuat user" })
+   ApiResponse.success(null, "berhasil membuat user").send(res)
 }
 
 export const uploadProfile = async (req: Request, res: Response): Promise<void> => {
@@ -59,13 +57,13 @@ export const uploadProfile = async (req: Request, res: Response): Promise<void> 
       }).validate(req.body, { abortEarly: false })
 
       if (Buffer.from(imageProfile, "base64").toString("base64") !== imageProfile) {
-         res.status(400).json({ "message": "harus berupa base64" })
+         ApiResponse.badRequest("imageProfile", "harus berupa base64").send(res)
          return
       }
 
       const { data: user } = await userRepository.getUserById(userId)
       if (!user) {
-         res.status(404).json({ "message": "User not found" })
+         ApiResponse.notFound("user not found").send(res)
          return
       }
 
@@ -73,23 +71,23 @@ export const uploadProfile = async (req: Request, res: Response): Promise<void> 
       const errorUpload = null
       // const {data: profileLink, error: errorUpload} = await uploadImage(imageProfile)
       if (errorUpload) {
-         res.status(400).json({ "message": "Failed to upload profile picture" })
+         ApiResponse.badRequest(null, "Failed to upload profile picture").send(res)
          return
       }
 
       const { data, error, status, statusText } = await userRepository.updateUser({ profile: profileLink, updated_at: new Date().toUTCString() }, userId)
 
       if (error) {
-         res.status(status).json({ "message": "Failed to upload profile picture", error: error.message })
+         ApiResponse.internalError("failed to update profile picture", error).send(res)
          return
       }
 
-      res.json({ "message": "Profile picture uploaded successfuly", "data": { "link": profileLink } })
+      ApiResponse.success({ link: profileLink }, "profile picture uploaded successfuly").send(res)
    } catch (error: any) {
       if (error instanceof yup.ValidationError) {
-         res.status(400).json({ "message": "error", "_errors": error.errors })
+         ApiResponse.badRequest(error.errors, "validation error").send(res)
          return
       }
-      res.status(500).json({ "message": error.message })
+      ApiResponse.internalError(error.message).send(res)
    }
 }
