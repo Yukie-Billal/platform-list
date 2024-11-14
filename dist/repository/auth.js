@@ -12,18 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const app = (0, express_1.default)();
-app.use(express_1.default.json());
-app.use(express_1.default.urlencoded({ extended: true }));
-app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.json({ "app": _constant_1.APP_NAME });
-}));
-const _constant_1 = require("./config/_constant");
-const user_1 = __importDefault(require("./routers/user"));
-const auth_1 = __importDefault(require("./routers/auth"));
-const platform_1 = __importDefault(require("./routers/platform"));
-app.use("/auth", auth_1.default);
-app.use("/users", user_1.default);
-app.use("/platforms", platform_1.default);
-app.listen(_constant_1.APP_PORT, () => console.log("server running on 0:" + _constant_1.APP_PORT));
+exports.signOut = exports.getUserBytoken = exports.signUp = exports.signIn = void 0;
+const supabase_1 = __importDefault(require("../config/supabase"));
+const signIn = (email, password) => __awaiter(void 0, void 0, void 0, function* () { return yield supabase_1.default.auth.signInWithPassword({ email, password }); });
+exports.signIn = signIn;
+const signUp = (email, password) => __awaiter(void 0, void 0, void 0, function* () { return yield supabase_1.default.auth.signUp({ email, password }); });
+exports.signUp = signUp;
+const getUserBytoken = (token) => __awaiter(void 0, void 0, void 0, function* () { return yield supabase_1.default.auth.getUser(token); });
+exports.getUserBytoken = getUserBytoken;
+const signOut = () => __awaiter(void 0, void 0, void 0, function* () { return yield supabase_1.default.auth.signOut(); });
+exports.signOut = signOut;

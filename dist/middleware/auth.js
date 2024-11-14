@@ -35,30 +35,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+exports.authMiddleware = void 0;
 const authRepository = __importStar(require("../repository/auth"));
 const response_1 = __importDefault(require("../utils/response"));
-const auth_1 = require("../middleware/auth");
-const authRouter = (0, express_1.Router)();
-authRouter.post("/signin", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password } = req.body;
-    const { data: authData, error } = yield authRepository.signIn(email, password);
-    if (error) {
-        response_1.default.badRequest(error, "Invalid credentials").send(res);
-        return;
-    }
-    response_1.default.success({
-        user_id: authData.user.id,
-        role: authData.user.role,
-        access_token: authData.session.access_token,
-        refresh_token: authData.session.refresh_token,
-    }, "Berhasil login").send(res);
-}));
-authRouter.get("/signout", (0, auth_1.authMiddleware)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { error } = yield authRepository.signOut();
-    if (error) {
-        response_1.default.internalError(error.message, error).send(res);
-    }
-    response_1.default.success(null, "berhasil sign out").send(res);
-}));
-exports.default = authRouter;
+const authMiddleware = () => {
+    return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        const accessToken = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
+        if (!accessToken) {
+            response_1.default.unAuthorized().send(res);
+            return;
+        }
+        const { data, error } = yield authRepository.getUserBytoken(accessToken);
+        if (error || !data.user) {
+            response_1.default.unAuthorized().send(res);
+        }
+        req.user = data.user;
+        next();
+    });
+};
+exports.authMiddleware = authMiddleware;

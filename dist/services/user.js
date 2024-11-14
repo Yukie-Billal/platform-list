@@ -31,26 +31,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createUser = exports.getUsers = void 0;
+exports.uploadProfile = exports.createUser = exports.getUsers = void 0;
+const yup = __importStar(require("yup"));
 const userRepository = __importStar(require("../repository/user"));
+const authRepository = __importStar(require("../repository/auth"));
 const password_1 = require("../utils/password");
+const response_1 = __importDefault(require("../utils/response"));
 const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { data: users, error } = yield userRepository.getUsers();
     if (error) {
-        res.status(500).json({ "message": error });
+        response_1.default.internalError(error.message).send(res);
         return;
     }
-    res.json({
-        users: users
-    });
+    response_1.default.success({ users }).send(res);
 });
 exports.getUsers = getUsers;
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, name, password, username } = req.body;
     const { data: emailUsed, error } = yield userRepository.getUserByEmail(email);
-    if (emailUsed || error) {
-        res.status(400).json({ "message": "Email already registered" });
+    if (emailUsed) {
+        response_1.default.badRequest("email", "email already registered").send(res);
         return;
     }
     const user = {
@@ -59,6 +63,55 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         email: email,
         password: (0, password_1.hashPassword)(password)
     };
-    res.json(user);
+    const { data: signUpUser, error: errorSignUp } = yield authRepository.signUp(email, password);
+    if (errorSignUp) {
+        response_1.default.badRequest(errorSignUp, "sign up failed");
+        return;
+    }
+    console.log(signUpUser);
+    const { data, error: errorInsert } = yield userRepository.createUser(user);
+    if (errorInsert) {
+        response_1.default.badRequest(errorInsert, "failed craete new user").send(res);
+        return;
+    }
+    response_1.default.success(null, "berhasil membuat user").send(res);
 });
 exports.createUser = createUser;
+const uploadProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { imageProfile, userId } = yield yup.object().shape({
+            userId: yup.string().required().nonNullable(),
+            imageProfile: yup.string().required().nonNullable()
+        }).validate(req.body, { abortEarly: false });
+        if (Buffer.from(imageProfile, "base64").toString("base64") !== imageProfile) {
+            response_1.default.badRequest("imageProfile", "harus berupa base64").send(res);
+            return;
+        }
+        const { data: user } = yield userRepository.getUserById(userId);
+        if (!user) {
+            response_1.default.notFound("user not found").send(res);
+            return;
+        }
+        const profileLink = "https://i.imgur.com/0Ngl2xs.jpeg";
+        const errorUpload = null;
+        // const {data: profileLink, error: errorUpload} = await uploadImage(imageProfile)
+        if (errorUpload) {
+            response_1.default.badRequest(null, "Failed to upload profile picture").send(res);
+            return;
+        }
+        const { data, error, status, statusText } = yield userRepository.updateUser({ profile: profileLink, updated_at: new Date().toUTCString() }, userId);
+        if (error) {
+            response_1.default.internalError("failed to update profile picture", error).send(res);
+            return;
+        }
+        response_1.default.success({ link: profileLink }, "profile picture uploaded successfuly").send(res);
+    }
+    catch (error) {
+        if (error instanceof yup.ValidationError) {
+            response_1.default.badRequest(error.errors, "validation error").send(res);
+            return;
+        }
+        response_1.default.internalError(error.message).send(res);
+    }
+});
+exports.uploadProfile = uploadProfile;
