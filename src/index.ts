@@ -1,5 +1,7 @@
 import express, { Request, Response } from "express"
 
+import { APP_NAME, APP_PORT } from "./config/_constant"
+
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -7,8 +9,6 @@ app.use(express.urlencoded({ extended: true }))
 app.get("/", async (req: Request, res: Response) => {
    res.json({ "app": APP_NAME })
 })
-
-import { APP_NAME, APP_PORT } from "./config/_constant"
 
 import userRouter from "./routers/user"
 import authRouter from "./routers/auth"
