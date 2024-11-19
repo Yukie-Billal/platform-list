@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
 const otherRouter = (0, express_1.Router)();
 otherRouter.post("/space", (req, res) => {
     let { latitude1, latitude2, longitude1, longitude2, return_distance_type = "km" } = req.body;
@@ -33,15 +34,15 @@ otherRouter.post("/space", (req, res) => {
     });
 });
 const baseUrl = "https://haddock-flexible-mouse.ngrok-free.app";
-otherRouter.get("/smart-lamp/state", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+otherRouter.get("/smart-lamp/state", (0, auth_1.authMiddleware)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield fetch(baseUrl + "/state");
     res.send(yield response.text());
 }));
-otherRouter.get("/smart-lamp/on", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+otherRouter.get("/smart-lamp/on", (0, auth_1.authMiddleware)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield fetch(baseUrl + "/on");
     res.send(yield response.text());
 }));
-otherRouter.get("/smart-lamp/off", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+otherRouter.get("/smart-lamp/off", (0, auth_1.authMiddleware)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield fetch(baseUrl + "/off");
     res.send(yield response.text());
 }));

@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import { authMiddleware } from "../middleware/auth";
 
 const otherRouter = Router()
 
@@ -38,15 +39,15 @@ otherRouter.post("/space", (req: Request, res: Response) => {
 })
 
 const baseUrl = "https://haddock-flexible-mouse.ngrok-free.app"
-otherRouter.get("/smart-lamp/state", async (req: Request, res: Response) => {
+otherRouter.get("/smart-lamp/state", authMiddleware(), async (req: Request, res: Response) => {
    const response = await fetch(baseUrl + "/state")
    res.send(await response.text())
 })
-otherRouter.get("/smart-lamp/on", async (req: Request, res: Response) => {
+otherRouter.get("/smart-lamp/on", authMiddleware(), async (req: Request, res: Response) => {
    const response = await fetch(baseUrl + "/on")
    res.send(await response.text())
 })
-otherRouter.get("/smart-lamp/off", async (req: Request, res: Response) => {
+otherRouter.get("/smart-lamp/off", authMiddleware(), async (req: Request, res: Response) => {
    const response = await fetch(baseUrl + "/off")
    res.send(await response.text())
 })
