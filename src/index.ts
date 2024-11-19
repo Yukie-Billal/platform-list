@@ -13,9 +13,11 @@ app.get("/", async (req: Request, res: Response) => {
 import userRouter from "./routers/user"
 import authRouter from "./routers/auth"
 import platformRouter from "./routers/platform"
+import otherRouter from "./routers/other"
 
 app.use("/auth", authRouter)
 app.use("/users", userRouter)
 app.use("/platforms", platformRouter)
+app.use("/", otherRouter)
 
 app.listen(APP_PORT, () => console.log("server running on 0:" + APP_PORT))
