@@ -1,10 +1,12 @@
 import express, { Request, Response } from "express"
+import cors from "cors"
 
 import { APP_NAME, APP_PORT } from "./config/_constant"
 
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(cors())
 
 app.get("/", async (req: Request, res: Response) => {
    res.json({ "app": APP_NAME })
