@@ -13,17 +13,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const _constant_1 = require("./config/_constant");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.json({ "app": _constant_1.APP_NAME });
 }));
-const _constant_1 = require("./config/_constant");
 const user_1 = __importDefault(require("./routers/user"));
 const auth_1 = __importDefault(require("./routers/auth"));
 const platform_1 = __importDefault(require("./routers/platform"));
+const other_1 = __importDefault(require("./routers/other"));
 app.use("/auth", auth_1.default);
 app.use("/users", user_1.default);
 app.use("/platforms", platform_1.default);
+app.use("/", other_1.default);
 app.listen(_constant_1.APP_PORT, () => console.log("server running on 0:" + _constant_1.APP_PORT));
