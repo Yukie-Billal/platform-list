@@ -7,8 +7,8 @@ export const getPlatforms = async (req: Request, res: Response) => {
       const { data: platforms, error } = await platformRepository.getPlatforms()
       if (error) throw error
       res.json(platforms)
-   } catch (error: any) {
-      res.status(500).json({ "message": error.message })
+   } catch (error) {
+      res.status(500).json({ "message": (error as Error).message })
    }
 }
 

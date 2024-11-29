@@ -1,7 +1,5 @@
 import { Request, Response, Router } from "express"
-import * as userRepository from "../repository/user"
 import * as authRepository from "../repository/auth"
-import { comparePassword } from "../utils/password"
 import ApiResponse from "../utils/response"
 import { authMiddleware } from "../middleware/auth"
 
