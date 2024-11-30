@@ -16,55 +16,62 @@ const statusList: StatusObject = {
 
 type StatusCode = keyof typeof statusList
 
-class ApiResponse {
+type BaseResponse<T, E> = {
+   statusMessage: string
+   message: string
+   data: T
+   errors: E | null
+}
+
+class ApiResponse<T, E> {
    declare status: StatusCode
    declare statusMessage: string
    declare message: string
-   declare errors: any
-   declare data: any
+   declare errors: E | null
+   declare data: T
 
-   constructor(data: any, message: string, status: StatusCode) {
+   constructor(data: T, message: string, status: StatusCode, errors: E | null = null) {
       this.data = data
       this.message = message
       this.status = status
       this.statusMessage = this.getStatusMessage(status)
+      this.errors = errors
    }
 
    public send(res: Response) {
-      res.status(this.status).json({
+      res.status(this.status).json(this.getJson())
+   }
+
+   private getJson(): BaseResponse<T, E> {
+      return {
          statusMessage: this.statusMessage,
          message: this.message,
          data: this.data,
          errors: this.errors
-      })
+      }
    }
 
    private getStatusMessage(s: StatusCode): string {
       return statusList[s]
    }
 
-   private setError(errors: any) {
-      this.errors = errors
-      return this
-   }
-
-   static success(data: any, message: string="", status: StatusCode=200) {
+   static success<T>(data: T, message: string = "", status: StatusCode = 200): ApiResponse<T, null> {
       return new ApiResponse(data, message, status)
    }
-   static badRequest(errors: any, message: string, status: StatusCode=400) {
-      return new ApiResponse(null, message, status).setError(errors)
+   static badRequest<E>(errors: E, message: string, status: StatusCode = 400): ApiResponse<null, E> {
+      return new ApiResponse(null, message, status, errors)
    }
-   static unAuthorized() {
+   static unAuthorized(): ApiResponse<null, null> {
       return new ApiResponse(null, "unauthorized", 401)
    }
-   static forbidden() {
+   static forbidden(): ApiResponse<null, null> {
       return new ApiResponse(null, "forbidden", 403)
    }
-   static notFound(message: string, status: StatusCode=404) {
-      return new ApiResponse(null, message, status)
+   static notFound<E>(message: string, status: StatusCode = 404, errors: E | null = null): ApiResponse<null, E | null> {
+      return new ApiResponse(null, message, status, errors)
    }
-   static internalError(message: string, error:any="", status: StatusCode=500) {
-      return new ApiResponse(null, message, status).setError(error)
+   static internalError<E>(message: string, error: E | null = null, status: StatusCode = 500): ApiResponse<null, E> {
+      return new ApiResponse(null, message, status, error)
    }
 }
 
