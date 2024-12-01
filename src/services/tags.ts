@@ -16,6 +16,16 @@ export const getTags = async (req: Request, res: Response) => {
 export const createTags = async (req: Request, res: Response) => {
    try {
       const { name, tag_id }: TablesInsert<"tags"> = req.body
+
+      ApiResponse.success(req.body).send(res)
+   } catch (error) {
+      ApiResponse.internalError((error as Error).message).send(res)
+   }
+}
+
+export const updateTags = async (req: Request, res: Response) => {
+   try {
+      
    } catch (error) {
       ApiResponse.internalError((error as Error).message).send(res)
    }
