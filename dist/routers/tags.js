@@ -28,4 +28,8 @@ const auth_1 = require("../middleware/auth");
 const tagsService = __importStar(require("../services/tags"));
 const tagsRouter = (0, express_1.Router)();
 tagsRouter.get("/", (0, auth_1.authMiddleware)(), tagsService.getTags);
+tagsRouter.get("/:id", (0, auth_1.authMiddleware)(), tagsService.getTagsById);
+tagsRouter.post("/", (0, auth_1.authMiddleware)(), tagsService.createTags);
+tagsRouter.put("/", (0, auth_1.authMiddleware)(), tagsService.updateTags);
+tagsRouter.delete("/", (0, auth_1.authMiddleware)(), tagsService.deleteTags);
 exports.default = tagsRouter;
