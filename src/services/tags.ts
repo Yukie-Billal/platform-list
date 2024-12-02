@@ -3,6 +3,7 @@ import * as tagsRepository from "../repository/tags";
 import ApiResponse from "../utils/response";
 import { Tables } from "../types/database.types";
 import { createTagsSchemaValidation, deleteTagsSchemaValidation, updateTagsSchemaValidation } from "../schemas/tags";
+import { errorHandler } from "../utils/errorHandler";
 
 export const getTags = async (req: Request, res: Response) => {
    try {
@@ -10,7 +11,7 @@ export const getTags = async (req: Request, res: Response) => {
       if (error) throw error
       ApiResponse.success<Array<Tables<"tags">>>(tags, "success").send(res)
    } catch (error) {
-      ApiResponse.internalError((error as Error).message).send(res)
+      errorHandler(error, res)
    }
 }
 
@@ -25,7 +26,7 @@ export const getTagsById = async (req: Request, res: Response) => {
 
       ApiResponse.success(tag, "retreived").send(res)
    } catch (error) {
-      ApiResponse.internalError((error as Error).message).send(res)
+      errorHandler(error, res)
    }
 }
 
@@ -33,6 +34,7 @@ export const createTags = async (req: Request, res: Response) => {
    try {
       const { name, tag_id } = await createTagsSchemaValidation.validate(req.body)
 
+      console.log(req.user)
       if (tag_id) {
          const { data: tag } = await tagsRepository.getTagById(tag_id)
          if (!tag) return ApiResponse.notFound("tag not found").send(res)
@@ -43,7 +45,7 @@ export const createTags = async (req: Request, res: Response) => {
 
       ApiResponse.success(tag, "create success").send(res)
    } catch (error) {
-      ApiResponse.internalError((error as Error).message).send(res)
+      errorHandler(error, res)
    }
 }
 
@@ -64,7 +66,7 @@ export const updateTags = async (req: Request, res: Response) => {
 
       ApiResponse.success({ id }, "update success").send(res)
    } catch (error) {
-      ApiResponse.internalError((error as Error).message).send(res)
+      errorHandler(error, res)
    }
 }
 
@@ -75,11 +77,11 @@ export const deleteTags = async (req: Request, res: Response) => {
       const { data: tag } = await tagsRepository.getTagById(id)
       if (!tag) return ApiResponse.notFound("tag not found").send(res)
 
-      const { error } = await tagsRepository.deleteTags(id)
+      const { error, status } = await tagsRepository.deleteTags(id)
       if (error) throw error
 
       ApiResponse.success({}, "delete success").send(res)
    } catch (error) {
-      ApiResponse.internalError((error as Error).message).send(res)
+      errorHandler(error, res)
    }
 }

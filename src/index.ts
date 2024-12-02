@@ -24,4 +24,8 @@ app.use("/platforms", platformRouter)
 app.use("/tags", tagsRouter)
 app.use("/", otherRouter)
 
+app.get("/*", (_, res: Response) => {
+   res.json({ "message": "wrong path address"})
+})
+
 app.listen(APP_PORT, () => console.log("server running on 0:" + APP_PORT))
