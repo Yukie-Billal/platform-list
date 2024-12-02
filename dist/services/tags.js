@@ -31,18 +31,62 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTags = void 0;
+exports.updateTags = exports.createTags = exports.getTags = void 0;
 const tagsRepository = __importStar(require("../repository/tags"));
+const response_1 = __importDefault(require("../utils/response"));
+const tags_1 = require("../schemas/tags");
 const getTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { data: tags, error } = yield tagsRepository.getTags();
         if (error)
             throw error;
-        res.json(tags);
+        response_1.default.success(tags, "success").send(res);
     }
     catch (error) {
-        res.status(500).json({ "message": error.message });
+        response_1.default.internalError(error.message).send(res);
     }
 });
 exports.getTags = getTags;
+const createTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name, tag_id } = yield tags_1.createTagsSchemaValidation.validate(req.body);
+        if (tag_id) {
+            const { data: tag } = yield tagsRepository.getTagById(tag_id);
+            if (!tag)
+                return response_1.default.notFound("tag not found").send(res);
+        }
+        const { data: tag, error } = yield tagsRepository.createTags({ name, tag_id });
+        if (error)
+            throw error;
+        response_1.default.success(tag).send(res);
+    }
+    catch (error) {
+        response_1.default.internalError(error.message).send(res);
+    }
+});
+exports.createTags = createTags;
+const updateTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, name, tag_id } = yield tags_1.updateTagsSchemaValidation.validate(req.body);
+        const tag = yield tagsRepository.getTagById(id);
+        if (!tag)
+            return response_1.default.notFound("tag not found").send(res);
+        if (tag_id) {
+            const { data: checkTag } = yield tagsRepository.getTagById(tag_id);
+            if (!checkTag)
+                return response_1.default.notFound("tag not found").send(res);
+        }
+        const { error } = yield tagsRepository.updateTags({ name, tag_id }, id);
+        if (error)
+            throw error;
+        response_1.default.success({ id }, "update success").send(res);
+    }
+    catch (error) {
+        response_1.default.internalError(error.message).send(res);
+    }
+});
+exports.updateTags = updateTags;
