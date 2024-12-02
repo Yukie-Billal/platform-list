@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import * as tagsRepository from "../repository/tags";
 import ApiResponse from "../utils/response";
-import { Tables, TablesInsert } from "../types/database.types";
+import { Tables } from "../types/database.types";
+import { createTagsSchemaValidation, updateTagsSchemaValidation } from "../schemas/tags";
 
 export const getTags = async (req: Request, res: Response) => {
    try {
@@ -15,9 +16,17 @@ export const getTags = async (req: Request, res: Response) => {
 
 export const createTags = async (req: Request, res: Response) => {
    try {
-      const { name, tag_id }: TablesInsert<"tags"> = req.body
+      const { name, tag_id } = await createTagsSchemaValidation.validate(req.body)
 
-      ApiResponse.success(req.body).send(res)
+      if (tag_id) {
+         const { data: tag } = await tagsRepository.getTagById(tag_id)
+         if (!tag) return ApiResponse.notFound("tag not found").send(res)
+      }
+
+      const { data: tag, error } = await tagsRepository.createTags({ name, tag_id })
+      if (error) throw error
+
+      ApiResponse.success(tag).send(res)
    } catch (error) {
       ApiResponse.internalError((error as Error).message).send(res)
    }
@@ -25,7 +34,20 @@ export const createTags = async (req: Request, res: Response) => {
 
 export const updateTags = async (req: Request, res: Response) => {
    try {
-      
+      const { id, name, tag_id } = await updateTagsSchemaValidation.validate(req.body)
+
+      const tag = await tagsRepository.getTagById(id)
+      if (!tag) return ApiResponse.notFound("tag not found").send(res)
+
+      if (tag_id) {
+         const { data: checkTag } = await tagsRepository.getTagById(tag_id)
+         if (!checkTag) return ApiResponse.notFound("tag not found").send(res)
+      }
+
+      const { error } = await tagsRepository.updateTags({ name, tag_id }, id)
+      if (error) throw error
+
+      ApiResponse.success({id}, "update success").send(res)
    } catch (error) {
       ApiResponse.internalError((error as Error).message).send(res)
    }

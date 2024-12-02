@@ -9,6 +9,8 @@ export const updateTags = async (values: TablesUpdate<"tags">, id: number) => aw
 
 export const deleteTags = async (id: number) => await supabase.from("tags").delete().eq("id", id)
 
+export const getTagById = async (id: number) => await supabase.from("tags").select().eq("id", id)
+
 export const getMainTags = async () => await supabase.from("tags").select().filter("tag_id", "is", null)
 
 export const getTagsByMainTagId = async (tag_id: number) => await supabase.from("tags").select().eq("tag_id", tag_id)
