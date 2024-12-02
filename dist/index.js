@@ -32,4 +32,7 @@ app.use("/users", user_1.default);
 app.use("/platforms", platform_1.default);
 app.use("/tags", tags_1.default);
 app.use("/", other_1.default);
+app.get("/*", (_, res) => {
+    res.json({ "message": "wrong path address" });
+});
 app.listen(_constant_1.APP_PORT, () => console.log("server running on 0:" + _constant_1.APP_PORT));

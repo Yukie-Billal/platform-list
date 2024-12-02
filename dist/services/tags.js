@@ -39,6 +39,7 @@ exports.deleteTags = exports.updateTags = exports.createTags = exports.getTagsBy
 const tagsRepository = __importStar(require("../repository/tags"));
 const response_1 = __importDefault(require("../utils/response"));
 const tags_1 = require("../schemas/tags");
+const errorHandler_1 = require("../utils/errorHandler");
 const getTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { data: tags, error } = yield tagsRepository.getTags();
@@ -47,7 +48,7 @@ const getTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         response_1.default.success(tags, "success").send(res);
     }
     catch (error) {
-        response_1.default.internalError(error.message).send(res);
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.getTags = getTags;
@@ -62,13 +63,14 @@ const getTagsById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         response_1.default.success(tag, "retreived").send(res);
     }
     catch (error) {
-        response_1.default.internalError(error.message).send(res);
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.getTagsById = getTagsById;
 const createTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, tag_id } = yield tags_1.createTagsSchemaValidation.validate(req.body);
+        console.log(req.user);
         if (tag_id) {
             const { data: tag } = yield tagsRepository.getTagById(tag_id);
             if (!tag)
@@ -80,7 +82,7 @@ const createTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         response_1.default.success(tag, "create success").send(res);
     }
     catch (error) {
-        response_1.default.internalError(error.message).send(res);
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.createTags = createTags;
@@ -101,7 +103,7 @@ const updateTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         response_1.default.success({ id }, "update success").send(res);
     }
     catch (error) {
-        response_1.default.internalError(error.message).send(res);
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.updateTags = updateTags;
@@ -111,13 +113,13 @@ const deleteTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const { data: tag } = yield tagsRepository.getTagById(id);
         if (!tag)
             return response_1.default.notFound("tag not found").send(res);
-        const { error } = yield tagsRepository.deleteTags(id);
+        const { error, status } = yield tagsRepository.deleteTags(id);
         if (error)
             throw error;
         response_1.default.success({}, "delete success").send(res);
     }
     catch (error) {
-        response_1.default.internalError(error.message).send(res);
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.deleteTags = deleteTags;
