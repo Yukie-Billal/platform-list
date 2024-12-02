@@ -11,7 +11,7 @@ type TagDeleteValidation = {
 
 export const createTagsSchemaValidation: Schema<TablesInsert<"tags">> = object().shape({
   name: string().required().trim().nonNullable().min(1).matches(/\S/, "Tidak boleh hanya spasi"),
-  tag_id: number().required().nullable(),
+  tag_id: number().optional().nullable(),
 })
 
 export const updateTagsSchemaValidation: Schema<TagUpdateValidation> = object().shape({

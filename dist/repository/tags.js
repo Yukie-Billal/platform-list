@@ -22,7 +22,7 @@ const updateTags = (values, id) => __awaiter(void 0, void 0, void 0, function* (
 exports.updateTags = updateTags;
 const deleteTags = (id) => __awaiter(void 0, void 0, void 0, function* () { return yield supabase_1.default.from("tags").delete().eq("id", id); });
 exports.deleteTags = deleteTags;
-const getTagById = (id) => __awaiter(void 0, void 0, void 0, function* () { return yield supabase_1.default.from("tags").select().eq("id", id); });
+const getTagById = (id) => __awaiter(void 0, void 0, void 0, function* () { return yield supabase_1.default.from("tags").select().eq("id", id).single(); });
 exports.getTagById = getTagById;
 const getMainTags = () => __awaiter(void 0, void 0, void 0, function* () { return yield supabase_1.default.from("tags").select().filter("tag_id", "is", null); });
 exports.getMainTags = getMainTags;

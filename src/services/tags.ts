@@ -18,9 +18,9 @@ export const getTagsById = async (req: Request, res: Response) => {
    try {
       const id: number = parseInt(req.params.id)
 
-      if (isNaN(id)) return ApiResponse.badRequest({ id: "must be string"}, "invalid type id").send(res)
+      if (isNaN(id)) return ApiResponse.badRequest({ id: "must be string" }, "invalid type id").send(res)
 
-      const tag = await tagsRepository.getTagById(id)
+      const { data: tag } = await tagsRepository.getTagById(id)
       if (!tag) return ApiResponse.notFound("tag not found").send(res)
 
       ApiResponse.success(tag, "retreived").send(res)
@@ -41,7 +41,7 @@ export const createTags = async (req: Request, res: Response) => {
       const { data: tag, error } = await tagsRepository.createTags({ name, tag_id })
       if (error) throw error
 
-      ApiResponse.success(tag).send(res)
+      ApiResponse.success(tag, "create success").send(res)
    } catch (error) {
       ApiResponse.internalError((error as Error).message).send(res)
    }
@@ -51,7 +51,7 @@ export const updateTags = async (req: Request, res: Response) => {
    try {
       const { id, name, tag_id } = await updateTagsSchemaValidation.validate(req.body)
 
-      const tag = await tagsRepository.getTagById(id)
+      const { data: tag } = await tagsRepository.getTagById(id)
       if (!tag) return ApiResponse.notFound("tag not found").send(res)
 
       if (tag_id) {
@@ -71,7 +71,8 @@ export const updateTags = async (req: Request, res: Response) => {
 export const deleteTags = async (req: Request, res: Response) => {
    try {
       const { id } = await deleteTagsSchemaValidation.validate(req.body)
-      const tag = await tagsRepository.getTagById(id)
+
+      const { data: tag } = await tagsRepository.getTagById(id)
       if (!tag) return ApiResponse.notFound("tag not found").send(res)
 
       const { error } = await tagsRepository.deleteTags(id)

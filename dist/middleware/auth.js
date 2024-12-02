@@ -43,12 +43,11 @@ const authMiddleware = () => {
         var _a;
         const accessToken = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
         if (!accessToken) {
-            response_1.default.unAuthorized().send(res);
-            return;
+            return response_1.default.unAuthorized().send(res);
         }
         const { data, error } = yield authRepository.getUserBytoken(accessToken);
         if (error || !data.user) {
-            response_1.default.unAuthorized().send(res);
+            return response_1.default.unAuthorized().send(res);
         }
         req.user = data.user;
         next();

@@ -56,7 +56,7 @@ const getTagsById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const id = parseInt(req.params.id);
         if (isNaN(id))
             return response_1.default.badRequest({ id: "must be string" }, "invalid type id").send(res);
-        const tag = yield tagsRepository.getTagById(id);
+        const { data: tag } = yield tagsRepository.getTagById(id);
         if (!tag)
             return response_1.default.notFound("tag not found").send(res);
         response_1.default.success(tag, "retreived").send(res);
@@ -77,7 +77,7 @@ const createTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const { data: tag, error } = yield tagsRepository.createTags({ name, tag_id });
         if (error)
             throw error;
-        response_1.default.success(tag).send(res);
+        response_1.default.success(tag, "create success").send(res);
     }
     catch (error) {
         response_1.default.internalError(error.message).send(res);
@@ -87,7 +87,7 @@ exports.createTags = createTags;
 const updateTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id, name, tag_id } = yield tags_1.updateTagsSchemaValidation.validate(req.body);
-        const tag = yield tagsRepository.getTagById(id);
+        const { data: tag } = yield tagsRepository.getTagById(id);
         if (!tag)
             return response_1.default.notFound("tag not found").send(res);
         if (tag_id) {
@@ -108,7 +108,7 @@ exports.updateTags = updateTags;
 const deleteTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = yield tags_1.deleteTagsSchemaValidation.validate(req.body);
-        const tag = yield tagsRepository.getTagById(id);
+        const { data: tag } = yield tagsRepository.getTagById(id);
         if (!tag)
             return response_1.default.notFound("tag not found").send(res);
         const { error } = yield tagsRepository.deleteTags(id);
