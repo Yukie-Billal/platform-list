@@ -19,7 +19,7 @@ export const getTagsById = async (req: Request, res: Response) => {
    try {
       const id: number = parseInt(req.params.id)
 
-      if (isNaN(id)) return ApiResponse.badRequest({ id: "must be string" }, "invalid type id").send(res)
+      if (isNaN(id)) return ApiResponse.badRequest({ id: "must be number" }, "invalid type id").send(res)
 
       const { data: tag } = await tagsRepository.getTagById(id)
       if (!tag) return ApiResponse.notFound("tag not found").send(res)
@@ -34,7 +34,6 @@ export const createTags = async (req: Request, res: Response) => {
    try {
       const { name, tag_id } = await createTagsSchemaValidation.validate(req.body)
 
-      console.log(req.user)
       if (tag_id) {
          const { data: tag } = await tagsRepository.getTagById(tag_id)
          if (!tag) return ApiResponse.notFound("tag not found").send(res)

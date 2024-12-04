@@ -1,46 +1,66 @@
 import { Request, Response } from "express"
 import * as yup from "yup"
 import * as platformRepository from "../repository/platform"
+import ApiResponse from "../utils/response"
+import { errorHandler } from "../utils/errorHandler"
+import { createPlatfromSchemaValidation, updatePlatfromSchemaValidation } from "../schemas/platforms"
 
 export const getPlatforms = async (req: Request, res: Response) => {
    try {
       const { data: platforms, error } = await platformRepository.getPlatforms()
       if (error) throw error
-      res.json(platforms)
+      ApiResponse.success(platforms).send(res)
    } catch (error) {
-      res.status(500).json({ "message": (error as Error).message })
+      errorHandler(error, res)
    }
 }
 
 export const getPlatformById = async (req: Request, res: Response) => {
    try {
-      const { data: platform, error } = await platformRepository.getPlatformById(req.params.id)
+      const id: number = parseInt(req.params.id)
+
+      if (isNaN(id)) return ApiResponse.badRequest({ id: "must be number" }, "invalid type id").send(res)
+
+      const { data: platform, error } = await platformRepository.getPlatformById(id)
       if (error) throw error
-      res.json(platform)
+      ApiResponse.success(platform).send(res)
    } catch (error: any) {
-      res.status(500).json({ "message": error.message })
+      errorHandler(error, res)
    }
 }
 
 export const createPlatform = async (req: Request, res: Response) => {
    try {
-      const platform = await yup.object().shape({
+      const { name, main_feature, type, description, active, mobile_app, web_url, design_rating, service_rating } = await createPlatfromSchemaValidation.validate(req.body, { abortEarly: false })
 
-      }).validate(req.body, { abortEarly: false })
-      res.json({ "message": "Berhasil menambah platform" })
+      const { data: platform, error } = await platformRepository.createPLatform({ name, main_feature, type, description, active, mobile_app, web_url, design_rating, service_rating })
+      if (error) throw error
+
+      ApiResponse.success(platform).send(res)
    } catch (error: any) {
-      res.status(500).json({ "message": error.message })
+      errorHandler(error, res)
    }
 }
 
 export const updatePlatform = async (req: Request, res: Response) => {
    try {
-      const { id } = await yup.object().shape({
-         id: yup.string().required()
-      }).validate(req.body, { abortEarly: false })
+      const { id, } = await updatePlatfromSchemaValidation.validate(req.body, { abortEarly: false })
 
-      res.json({ id })
+      const { data: platform, error } = await platformRepository.getPlatformById(id)
+      if (!platform || error) {
+         return ApiResponse.notFound("platform not found").send(res)
+      }
+
+      ApiResponse.success(id, "update success").send(res)
    } catch (error: any) {
-      res.status(500).json({ "message": error.message })
+      errorHandler(error, res)
+   }
+}
+
+export const deletePlatform = async (req: Request, res: Response) => {
+   try {
+      ApiResponse.success({}).send(res)
+   } catch (error) {
+      errorHandler(error, res)
    }
 }
