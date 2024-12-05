@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      platform_tag: {
+        Row: {
+          created_at: string
+          id: number
+          platform_id: string
+          tag_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          platform_id: string
+          tag_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          platform_id?: string
+          tag_id?: number
+        }
+        Relationships: []
+      }
       platforms: {
         Row: {
           active: boolean
