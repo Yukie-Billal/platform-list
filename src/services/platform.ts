@@ -1,5 +1,4 @@
 import { Request, Response } from "express"
-import * as yup from "yup"
 import * as platformRepository from "../repository/platform"
 import ApiResponse from "../utils/response"
 import { errorHandler } from "../utils/errorHandler"
@@ -17,12 +16,11 @@ export const getPlatforms = async (req: Request, res: Response) => {
 
 export const getPlatformById = async (req: Request, res: Response) => {
    try {
-      const id: number = parseInt(req.params.id)
-
-      if (isNaN(id)) return ApiResponse.badRequest({ id: "must be number" }, "invalid type id").send(res)
+      const id: string = req.params.id
 
       const { data: platform, error } = await platformRepository.getPlatformById(id)
       if (error) throw error
+
       ApiResponse.success(platform).send(res)
    } catch (error: any) {
       errorHandler(error, res)

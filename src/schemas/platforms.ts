@@ -2,7 +2,7 @@ import { boolean, number, object, Schema, string } from "yup";
 import { TablesInsert, TablesUpdate } from "../types/database.types";
 
 type UpdateSchema = Omit<TablesUpdate<"platforms">, "id"> & {
-   id: number
+   id: string
 }
 
 export const createPlatfromSchemaValidation: Schema<TablesInsert<"platforms">> = object().shape({
@@ -19,7 +19,7 @@ export const createPlatfromSchemaValidation: Schema<TablesInsert<"platforms">> =
 });
 
 export const updatePlatfromSchemaValidation: Schema<UpdateSchema> = object().shape({
-   id: number().required(),
+   id: string().required(),
    name: string().required().nonNullable(),
    main_feature: string().required().nonNullable(),
    type: string().required().nonNullable(),

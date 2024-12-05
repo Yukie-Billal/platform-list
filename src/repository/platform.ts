@@ -1,9 +1,9 @@
 import supabase from "../config/supabase";
-import { TablesInsert, TablesUpdate } from "../types/database.types";
+import { Tables, TablesInsert, TablesUpdate } from "../types/database.types";
 
 export const getPlatforms = async () => await supabase.from("platforms").select()
 
-export const getPlatformById = async (id: number) => await supabase.from("platforms").select().eq("id", id).single()
+export const getPlatformById = async (id: Tables<"platforms">['id']) => await supabase.from("platforms").select().eq("id", id).single()
 
 export const createPLatform = async (platform: TablesInsert<"platforms">) => await supabase.from("platforms").insert(platform)
 
