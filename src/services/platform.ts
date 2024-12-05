@@ -57,7 +57,18 @@ export const updatePlatform = async (req: Request, res: Response) => {
 
 export const deletePlatform = async (req: Request, res: Response) => {
    try {
-      ApiResponse.success({}).send(res)
+      const id: string = req.params.id
+
+      const { data: platform, error: notFoundError } = await platformRepository.getPlatformById(id)
+      if (notFoundError || !platform) {
+         ApiResponse.notFound("Platform not found").send(res)
+         return;
+      }
+
+      const { error: deleteError } = await platformRepository.deletePlatform(id)
+      if (deleteError) throw deleteError
+
+      ApiResponse.success({ id }).send(res)
    } catch (error) {
       errorHandler(error, res)
    }
