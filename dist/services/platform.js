@@ -80,12 +80,15 @@ const createPlatform = (req, res) => __awaiter(void 0, void 0, void 0, function*
 exports.createPlatform = createPlatform;
 const updatePlatform = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id, } = yield platforms_1.updatePlatfromSchemaValidation.validate(req.body, { abortEarly: false });
+        const { id, active, description, design_rating, main_feature, mobile_app, name, service_rating, type, web_url } = yield platforms_1.updatePlatfromSchemaValidation.validate(req.body, { abortEarly: false });
         const { data: platform, error } = yield platformRepository.getPlatformById(id);
         if (!platform || error) {
             return response_1.default.notFound("platform not found").send(res);
         }
-        response_1.default.success(id, "update success").send(res);
+        const { error: updateError } = yield platformRepository.updatePlatform({ active, description, design_rating, main_feature, mobile_app, name, service_rating, type, web_url }, id);
+        if (updateError)
+            throw updateError;
+        response_1.default.success({ id }, "update success").send(res);
     }
     catch (error) {
         (0, errorHandler_1.errorHandler)(error, res);
@@ -94,8 +97,9 @@ const updatePlatform = (req, res) => __awaiter(void 0, void 0, void 0, function*
 exports.updatePlatform = updatePlatform;
 const deletePlatform = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const id = req.params.id;
+        const id = req.body.id;
         const { data: platform, error: notFoundError } = yield platformRepository.getPlatformById(id);
+        console.log(platform, notFoundError);
         if (notFoundError || !platform) {
             response_1.default.notFound("Platform not found").send(res);
             return;

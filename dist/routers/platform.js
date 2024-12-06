@@ -32,4 +32,5 @@ platformRouter.get("/:id", platformService.getPlatformById);
 platformRouter.post("/", (0, auth_1.authMiddleware)(), platformService.createPlatform);
 platformRouter.put("/", (0, auth_1.authMiddleware)(), platformService.updatePlatform);
 platformRouter.patch("/", (0, auth_1.authMiddleware)(), (req, res) => { res.json({}); });
+platformRouter.delete("/", (0, auth_1.authMiddleware)(), platformService.deletePlatform);
 exports.default = platformRouter;
