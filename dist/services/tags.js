@@ -35,7 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTags = exports.updateTags = exports.createTags = exports.getTagsById = exports.getTags = void 0;
+exports.getTagsByTagId = exports.getMainTags = exports.deleteTags = exports.updateTags = exports.createTags = exports.getTagsById = exports.getTags = void 0;
 const tagsRepository = __importStar(require("../repository/tags"));
 const response_1 = __importDefault(require("../utils/response"));
 const tags_1 = require("../schemas/tags");
@@ -56,7 +56,7 @@ const getTagsById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id))
-            return response_1.default.badRequest({ id: "must be string" }, "invalid type id").send(res);
+            return response_1.default.badRequest({ id: "must be number" }, "invalid type id").send(res);
         const { data: tag } = yield tagsRepository.getTagById(id);
         if (!tag)
             return response_1.default.notFound("tag not found").send(res);
@@ -70,7 +70,6 @@ exports.getTagsById = getTagsById;
 const createTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, tag_id } = yield tags_1.createTagsSchemaValidation.validate(req.body);
-        console.log(req.user);
         if (tag_id) {
             const { data: tag } = yield tagsRepository.getTagById(tag_id);
             if (!tag)
@@ -113,13 +112,40 @@ const deleteTags = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const { data: tag } = yield tagsRepository.getTagById(id);
         if (!tag)
             return response_1.default.notFound("tag not found").send(res);
-        const { error, status } = yield tagsRepository.deleteTags(id);
+        const { error } = yield tagsRepository.deleteTags(id);
         if (error)
             throw error;
-        response_1.default.success({}, "delete success").send(res);
+        response_1.default.success({ id }, "delete success").send(res);
     }
     catch (error) {
         (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.deleteTags = deleteTags;
+const getMainTags = (_, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { data: tags, error } = yield tagsRepository.getMainTags();
+        if (error)
+            throw error;
+        response_1.default.success(tags).send(res);
+    }
+    catch (error) {
+        (0, errorHandler_1.errorHandler)(error, res);
+    }
+});
+exports.getMainTags = getMainTags;
+const getTagsByTagId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const tagId = parseInt(req.params.id);
+        if (isNaN(tagId))
+            return response_1.default.badRequest({ id: "must be number" }, "invalid type id").send(res);
+        const { data: tags, error } = yield tagsRepository.getTagsByMainTagId(tagId);
+        if (error)
+            throw error;
+        response_1.default.success(tags).send(res);
+    }
+    catch (error) {
+        (0, errorHandler_1.errorHandler)(error, res);
+    }
+});
+exports.getTagsByTagId = getTagsByTagId;

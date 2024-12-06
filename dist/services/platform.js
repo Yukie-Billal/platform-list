@@ -31,53 +31,82 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlatform = exports.createPlatform = exports.getPlatformById = exports.getPlatforms = void 0;
-const yup = __importStar(require("yup"));
+exports.deletePlatform = exports.updatePlatform = exports.createPlatform = exports.getPlatformById = exports.getPlatforms = void 0;
 const platformRepository = __importStar(require("../repository/platform"));
+const response_1 = __importDefault(require("../utils/response"));
+const errorHandler_1 = require("../utils/errorHandler");
+const platforms_1 = require("../schemas/platforms");
 const getPlatforms = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { data: platforms, error } = yield platformRepository.getPlatforms();
         if (error)
             throw error;
-        res.json(platforms);
+        response_1.default.success(platforms).send(res);
     }
     catch (error) {
-        res.status(500).json({ "message": error.message });
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.getPlatforms = getPlatforms;
 const getPlatformById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { data: platform, error } = yield platformRepository.getPlatformById(req.params.id);
+        const id = req.params.id;
+        const { data: platform, error } = yield platformRepository.getPlatformById(id);
         if (error)
             throw error;
-        res.json(platform);
+        response_1.default.success(platform).send(res);
     }
     catch (error) {
-        res.status(500).json({ "message": error.message });
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.getPlatformById = getPlatformById;
 const createPlatform = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const platform = yield yup.object().shape({}).validate(req.body, { abortEarly: false });
-        res.json({ "message": "Berhasil menambah platform" });
+        const { name, main_feature, type, description, active, mobile_app, web_url, design_rating, service_rating } = yield platforms_1.createPlatfromSchemaValidation.validate(req.body, { abortEarly: false });
+        const { data: platform, error } = yield platformRepository.createPLatform({ name, main_feature, type, description, active, mobile_app, web_url, design_rating, service_rating });
+        if (error)
+            throw error;
+        response_1.default.success(platform, "create success").send(res);
     }
     catch (error) {
-        res.status(500).json({ "message": error.message });
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.createPlatform = createPlatform;
 const updatePlatform = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = yield yup.object().shape({
-            id: yup.string().required()
-        }).validate(req.body, { abortEarly: false });
-        res.json({ id });
+        const { id, } = yield platforms_1.updatePlatfromSchemaValidation.validate(req.body, { abortEarly: false });
+        const { data: platform, error } = yield platformRepository.getPlatformById(id);
+        if (!platform || error) {
+            return response_1.default.notFound("platform not found").send(res);
+        }
+        response_1.default.success(id, "update success").send(res);
     }
     catch (error) {
-        res.status(500).json({ "message": error.message });
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.updatePlatform = updatePlatform;
+const deletePlatform = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = req.params.id;
+        const { data: platform, error: notFoundError } = yield platformRepository.getPlatformById(id);
+        if (notFoundError || !platform) {
+            response_1.default.notFound("Platform not found").send(res);
+            return;
+        }
+        const { error: deleteError } = yield platformRepository.deletePlatform(id);
+        if (deleteError)
+            throw deleteError;
+        response_1.default.success({ id }).send(res);
+    }
+    catch (error) {
+        (0, errorHandler_1.errorHandler)(error, res);
+    }
+});
+exports.deletePlatform = deletePlatform;
