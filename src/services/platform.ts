@@ -34,7 +34,7 @@ export const createPlatform = async (req: Request, res: Response) => {
       const { data: platform, error } = await platformRepository.createPLatform({ name, main_feature, type, description, active, mobile_app, web_url, design_rating, service_rating })
       if (error) throw error
 
-      ApiResponse.success(platform).send(res)
+      ApiResponse.success(platform, "create success").send(res)
    } catch (error: any) {
       errorHandler(error, res)
    }
