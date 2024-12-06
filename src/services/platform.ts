@@ -42,14 +42,17 @@ export const createPlatform = async (req: Request, res: Response) => {
 
 export const updatePlatform = async (req: Request, res: Response) => {
    try {
-      const { id, } = await updatePlatfromSchemaValidation.validate(req.body, { abortEarly: false })
+      const { id, active, description, design_rating, main_feature, mobile_app, name, service_rating, type, web_url } = await updatePlatfromSchemaValidation.validate(req.body, { abortEarly: false })
 
       const { data: platform, error } = await platformRepository.getPlatformById(id)
       if (!platform || error) {
          return ApiResponse.notFound("platform not found").send(res)
       }
 
-      ApiResponse.success(id, "update success").send(res)
+      const { error: updateError } = await platformRepository.updatePlatform({ active, description, design_rating, main_feature, mobile_app, name, service_rating, type, web_url }, id)
+      if (updateError) throw updateError
+
+      ApiResponse.success({id}, "update success").send(res)
    } catch (error: any) {
       errorHandler(error, res)
    }
@@ -57,9 +60,10 @@ export const updatePlatform = async (req: Request, res: Response) => {
 
 export const deletePlatform = async (req: Request, res: Response) => {
    try {
-      const id: string = req.params.id
+      const id: string = req.body.id
 
       const { data: platform, error: notFoundError } = await platformRepository.getPlatformById(id)
+      console.log(platform, notFoundError)
       if (notFoundError || !platform) {
          ApiResponse.notFound("Platform not found").send(res)
          return;

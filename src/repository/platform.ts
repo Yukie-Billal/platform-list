@@ -1,7 +1,7 @@
 import supabase from "../config/supabase";
 import { TablesInsert, TablesUpdate } from "../types/database.types";
 
-export const getPlatforms = async () => await supabase.from("platforms").select(`*, tags(id, name)`)
+export const getPlatforms = async () => await supabase.from("platforms").select(`*, tags(id, name)`).filter("deleted_at", "is", null)
 
 export const getPlatformById = async (id: string) => await supabase.from("platforms").select().eq("id", id).single()
 
