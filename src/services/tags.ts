@@ -8,7 +8,7 @@ import { errorHandler } from "../utils/errorHandler";
 export const getTags = async (req: Request, res: Response) => {
    try {
       const { data: tags, error } = await tagsRepository.getTags()
-      if (error) throw error
+      if (error) throw error 
       ApiResponse.success<Array<Tables<"tags">>>(tags, "success").send(res)
    } catch (error) {
       errorHandler(error, res)
@@ -76,10 +76,36 @@ export const deleteTags = async (req: Request, res: Response) => {
       const { data: tag } = await tagsRepository.getTagById(id)
       if (!tag) return ApiResponse.notFound("tag not found").send(res)
 
-      const { error, status } = await tagsRepository.deleteTags(id)
+      const { error } = await tagsRepository.deleteTags(id)
       if (error) throw error
 
-      ApiResponse.success({}, "delete success").send(res)
+      ApiResponse.success({id}, "delete success").send(res)
+   } catch (error) {
+      errorHandler(error, res)
+   }
+}
+
+export const getMainTags = async (_: Request, res: Response) => {
+   try {
+      const {data: tags, error} = await tagsRepository.getMainTags()
+      if (error) throw error
+
+      ApiResponse.success(tags).send(res)
+   } catch (error) {
+      errorHandler(error, res)
+   }
+}
+
+export const getTagsByTagId = async (req: Request, res: Response) => {
+   try {
+      const tagId: number = parseInt(req.params.id)
+
+      if (isNaN(tagId)) return ApiResponse.badRequest({ id: "must be number" }, "invalid type id").send(res)
+
+      const {data: tags, error} = await tagsRepository.getTagsByMainTagId(tagId)
+      if (error) throw error
+
+      ApiResponse.success(tags).send(res)
    } catch (error) {
       errorHandler(error, res)
    }
