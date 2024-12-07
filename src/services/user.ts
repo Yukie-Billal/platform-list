@@ -6,6 +6,7 @@ import { hashPassword } from "../utils/password"
 import { TablesInsert } from "../types/database.types"
 import { uploadImage } from "../utils/imgur"
 import ApiResponse from "../utils/response"
+import { errorHandler } from "../utils/errorHandler"
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
    const { data: users, error } = await userRepository.getUsers()
@@ -17,36 +18,40 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 }
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
-   const { email, name, password, username }: TablesInsert<"users"> = req.body
-
-   const { data: emailUsed, error } = await userRepository.getUserByEmail(email)
-
-   if (emailUsed) {
-      ApiResponse.badRequest("email", "email already registered").send(res)
-      return
+   try {
+      const { email, name, password, username }: TablesInsert<"users"> = req.body
+   
+      const { data: emailUsed } = await userRepository.getUserByEmail(email)
+   
+      if (emailUsed) {
+         ApiResponse.badRequest("email", "email already registered").send(res)
+         return
+      }
+   
+      const user: TablesInsert<'users'> = {
+         name: name,
+         username: username,
+         email: email,
+         password: hashPassword(password)
+      }
+   
+      const { data: signUpUser, error: errorSignUp } = await authRepository.signUp(email, password)
+      if (errorSignUp) {
+         ApiResponse.badRequest(errorSignUp, "sign up failed")
+         return
+      }
+      console.log(signUpUser);
+   
+      const { data, error: errorInsert } = await userRepository.createUser(user)
+      if (errorInsert) {
+         ApiResponse.badRequest(errorInsert, "failed craete new user").send(res)
+         return
+      }
+   
+      ApiResponse.success(null, "berhasil membuat user").send(res)
+   } catch (error) {
+      errorHandler(error, res)
    }
-
-   const user: TablesInsert<'users'> = {
-      name: name,
-      username: username,
-      email: email,
-      password: hashPassword(password)
-   }
-
-   const { data: signUpUser, error: errorSignUp } = await authRepository.signUp(email, password)
-   if (errorSignUp) {
-      ApiResponse.badRequest(errorSignUp, "sign up failed")
-      return
-   }
-   console.log(signUpUser);
-
-   const { data, error: errorInsert } = await userRepository.createUser(user)
-   if (errorInsert) {
-      ApiResponse.badRequest(errorInsert, "failed craete new user").send(res)
-      return
-   }
-
-   ApiResponse.success(null, "berhasil membuat user").send(res)
 }
 
 export const uploadProfile = async (req: Request, res: Response): Promise<void> => {
@@ -75,7 +80,7 @@ export const uploadProfile = async (req: Request, res: Response): Promise<void> 
          return
       }
 
-      const { data, error, status, statusText } = await userRepository.updateUser({ profile: profileLink, updated_at: new Date().toUTCString() }, userId)
+      const { error } = await userRepository.updateUser({ profile: profileLink, updated_at: new Date().toUTCString() }, userId)
 
       if (error) {
          ApiResponse.internalError("failed to update profile picture", error).send(res)
@@ -84,10 +89,14 @@ export const uploadProfile = async (req: Request, res: Response): Promise<void> 
 
       ApiResponse.success({ link: profileLink }, "profile picture uploaded successfuly").send(res)
    } catch (error: any) {
-      if (error instanceof yup.ValidationError) {
-         ApiResponse.badRequest(error.errors, "validation error").send(res)
-         return
-      }
-      ApiResponse.internalError(error.message).send(res)
+      errorHandler(error, res)
+   }
+}
+
+export const updateUser = async (req: Request, res: Response) => {
+   try {
+      ApiResponse.success({}).send(res)
+   } catch (error) {
+      errorHandler(error, res)
    }
 }
