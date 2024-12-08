@@ -20,34 +20,34 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 export const createUser = async (req: Request, res: Response): Promise<void> => {
    try {
       const { email, name, password, username }: TablesInsert<"users"> = req.body
-   
+
       const { data: emailUsed } = await userRepository.getUserByEmail(email)
-   
+
       if (emailUsed) {
          ApiResponse.badRequest("email", "email already registered").send(res)
          return
       }
-   
+
       const user: TablesInsert<'users'> = {
          name: name,
          username: username,
          email: email,
          password: hashPassword(password)
       }
-   
+
       const { data: signUpUser, error: errorSignUp } = await authRepository.signUp(email, password)
       if (errorSignUp) {
          ApiResponse.badRequest(errorSignUp, "sign up failed")
          return
       }
       console.log(signUpUser);
-   
+
       const { data, error: errorInsert } = await userRepository.createUser(user)
       if (errorInsert) {
          ApiResponse.badRequest(errorInsert, "failed craete new user").send(res)
          return
       }
-   
+
       ApiResponse.success(null, "berhasil membuat user").send(res)
    } catch (error) {
       errorHandler(error, res)
@@ -95,7 +95,12 @@ export const uploadProfile = async (req: Request, res: Response): Promise<void> 
 
 export const updateUser = async (req: Request, res: Response) => {
    try {
-      ApiResponse.success({}).send(res)
+      const { id, } = req.body
+
+      const { data: checkUser, error: errorNotFound } = await userRepository.getUserById(id)
+      if (!checkUser || errorNotFound) throw errorNotFound
+
+      ApiResponse.success(checkUser).send(res)
    } catch (error) {
       errorHandler(error, res)
    }
