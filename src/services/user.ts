@@ -7,14 +7,17 @@ import { TablesInsert } from "../types/database.types"
 import { uploadImage } from "../utils/imgur"
 import ApiResponse from "../utils/response"
 import { errorHandler } from "../utils/errorHandler"
+import { HttpBadRequest, HttpInternalError, HttpNotFound } from "../utils/errorClass"
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
-   const { data: users, error } = await userRepository.getUsers()
-   if (error) {
-      ApiResponse.internalError(error.message).send(res)
-      return
+   try {
+      const { data: users, error } = await userRepository.getUsers()
+      if (error) throw new HttpInternalError(error.message)
+
+      ApiResponse.success({ users }).send(res)
+   } catch (error) {
+      errorHandler(error, res)
    }
-   ApiResponse.success({ users }).send(res)
 }
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
@@ -67,18 +70,12 @@ export const uploadProfile = async (req: Request, res: Response): Promise<void> 
       }
 
       const { data: user } = await userRepository.getUserById(userId)
-      if (!user) {
-         ApiResponse.notFound("user not found").send(res)
-         return
-      }
+      if (!user) throw new HttpNotFound("user not found")
 
       const profileLink = "https://i.imgur.com/0Ngl2xs.jpeg"
       const errorUpload = null
       // const {data: profileLink, error: errorUpload} = await uploadImage(imageProfile)
-      if (errorUpload) {
-         ApiResponse.badRequest(null, "Failed to upload profile picture").send(res)
-         return
-      }
+      if (errorUpload) throw new HttpBadRequest("Failed to upload profile picture", null)
 
       const { error } = await userRepository.updateUser({ profile: profileLink, updated_at: new Date().toUTCString() }, userId)
 
@@ -88,19 +85,22 @@ export const uploadProfile = async (req: Request, res: Response): Promise<void> 
       }
 
       ApiResponse.success({ link: profileLink }, "profile picture uploaded successfuly").send(res)
-   } catch (error: any) {
+   } catch (error) {
       errorHandler(error, res)
    }
 }
 
-export const updateUser = async (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response): Promise<void> => {
    try {
       const { id, } = req.body
 
       const { data: checkUser, error: errorNotFound } = await userRepository.getUserById(id)
-      if (!checkUser || errorNotFound) throw errorNotFound
+      if (!checkUser || errorNotFound) throw new HttpNotFound("user not found")
 
-      ApiResponse.success(checkUser).send(res)
+      const { error: errorUpdate } = await userRepository.updateUser({}, id)
+      if (errorUpdate) throw new HttpInternalError(errorUpdate.message)
+
+      ApiResponse.success({id}, "success update").send(res)
    } catch (error) {
       errorHandler(error, res)
    }
