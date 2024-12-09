@@ -35,46 +35,56 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadProfile = exports.createUser = exports.getUsers = void 0;
+exports.updateUser = exports.uploadProfile = exports.createUser = exports.getUsers = void 0;
 const yup = __importStar(require("yup"));
 const userRepository = __importStar(require("../repository/user"));
 const authRepository = __importStar(require("../repository/auth"));
 const password_1 = require("../utils/password");
 const response_1 = __importDefault(require("../utils/response"));
+const errorHandler_1 = require("../utils/errorHandler");
+const errorClass_1 = require("../utils/errorClass");
 const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { data: users, error } = yield userRepository.getUsers();
-    if (error) {
-        response_1.default.internalError(error.message).send(res);
-        return;
+    try {
+        const { data: users, error } = yield userRepository.getUsers();
+        if (error)
+            throw new errorClass_1.HttpInternalError(error.message);
+        response_1.default.success({ users }).send(res);
     }
-    response_1.default.success({ users }).send(res);
+    catch (error) {
+        (0, errorHandler_1.errorHandler)(error, res);
+    }
 });
 exports.getUsers = getUsers;
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, name, password, username } = req.body;
-    const { data: emailUsed, error } = yield userRepository.getUserByEmail(email);
-    if (emailUsed) {
-        response_1.default.badRequest("email", "email already registered").send(res);
-        return;
+    try {
+        const { email, name, password, username } = req.body;
+        const { data: emailUsed } = yield userRepository.getUserByEmail(email);
+        if (emailUsed) {
+            response_1.default.badRequest("email", "email already registered").send(res);
+            return;
+        }
+        const user = {
+            name: name,
+            username: username,
+            email: email,
+            password: (0, password_1.hashPassword)(password)
+        };
+        const { data: signUpUser, error: errorSignUp } = yield authRepository.signUp(email, password);
+        if (errorSignUp) {
+            response_1.default.badRequest(errorSignUp, "sign up failed");
+            return;
+        }
+        console.log(signUpUser);
+        const { data, error: errorInsert } = yield userRepository.createUser(user);
+        if (errorInsert) {
+            response_1.default.badRequest(errorInsert, "failed craete new user").send(res);
+            return;
+        }
+        response_1.default.success(null, "berhasil membuat user").send(res);
     }
-    const user = {
-        name: name,
-        username: username,
-        email: email,
-        password: (0, password_1.hashPassword)(password)
-    };
-    const { data: signUpUser, error: errorSignUp } = yield authRepository.signUp(email, password);
-    if (errorSignUp) {
-        response_1.default.badRequest(errorSignUp, "sign up failed");
-        return;
+    catch (error) {
+        (0, errorHandler_1.errorHandler)(error, res);
     }
-    console.log(signUpUser);
-    const { data, error: errorInsert } = yield userRepository.createUser(user);
-    if (errorInsert) {
-        response_1.default.badRequest(errorInsert, "failed craete new user").send(res);
-        return;
-    }
-    response_1.default.success(null, "berhasil membuat user").send(res);
 });
 exports.createUser = createUser;
 const uploadProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -88,18 +98,14 @@ const uploadProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             return;
         }
         const { data: user } = yield userRepository.getUserById(userId);
-        if (!user) {
-            response_1.default.notFound("user not found").send(res);
-            return;
-        }
+        if (!user)
+            throw new errorClass_1.HttpNotFound("user not found");
         const profileLink = "https://i.imgur.com/0Ngl2xs.jpeg";
         const errorUpload = null;
         // const {data: profileLink, error: errorUpload} = await uploadImage(imageProfile)
-        if (errorUpload) {
-            response_1.default.badRequest(null, "Failed to upload profile picture").send(res);
-            return;
-        }
-        const { data, error, status, statusText } = yield userRepository.updateUser({ profile: profileLink, updated_at: new Date().toUTCString() }, userId);
+        if (errorUpload)
+            throw new errorClass_1.HttpBadRequest("Failed to upload profile picture", null);
+        const { error } = yield userRepository.updateUser({ profile: profileLink, updated_at: new Date().toUTCString() }, userId);
         if (error) {
             response_1.default.internalError("failed to update profile picture", error).send(res);
             return;
@@ -107,11 +113,23 @@ const uploadProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         response_1.default.success({ link: profileLink }, "profile picture uploaded successfuly").send(res);
     }
     catch (error) {
-        if (error instanceof yup.ValidationError) {
-            response_1.default.badRequest(error.errors, "validation error").send(res);
-            return;
-        }
-        response_1.default.internalError(error.message).send(res);
+        (0, errorHandler_1.errorHandler)(error, res);
     }
 });
 exports.uploadProfile = uploadProfile;
+const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, } = req.body;
+        const { data: checkUser, error: errorNotFound } = yield userRepository.getUserById(id);
+        if (!checkUser || errorNotFound)
+            throw new errorClass_1.HttpNotFound("user not found");
+        const { error: errorUpdate } = yield userRepository.updateUser({}, id);
+        if (errorUpdate)
+            throw new errorClass_1.HttpInternalError(errorUpdate.message);
+        response_1.default.success({ id }, "success update").send(res);
+    }
+    catch (error) {
+        (0, errorHandler_1.errorHandler)(error, res);
+    }
+});
+exports.updateUser = updateUser;

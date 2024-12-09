@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandler = void 0;
 const response_1 = __importDefault(require("./response"));
 const yup_1 = require("yup");
+const errorClass_1 = require("./errorClass");
 const errorHandler = (e, res) => {
     if (e instanceof yup_1.ValidationError) {
         const errors = [];
@@ -25,6 +26,14 @@ const errorHandler = (e, res) => {
         return;
     }
     console.log(e);
+    if (e instanceof errorClass_1.HttpNotFound) {
+        response_1.default.notFound(e.message).send(res);
+        return;
+    }
+    if (e instanceof errorClass_1.HttpBadRequest) {
+        response_1.default.badRequest(e.errors, e.message).send(res);
+        return;
+    }
     response_1.default.internalError(e.message).send(res);
 };
 exports.errorHandler = errorHandler;
